@@ -1,125 +1,166 @@
 <?php
-/*
- * Deals with Word document builder aspects
+/**
+ * Deals with Word document builder aspects.
  */
+
 namespace Aspose\Cloud\Words;
 
 use Aspose\Cloud\Common\AsposeApp;
-use Aspose\Cloud\Common\Utils;
 use Aspose\Cloud\Common\Product;
-use Aspose\Cloud\Storage\Folder;
+use Aspose\Cloud\Common\Utils;
 use Aspose\Cloud\Exception\AsposeCloudException as Exception;
+use Aspose\Cloud\Storage\Folder;
 
-class MailMerge {
-    /*
+class MailMerge
+{
+
+    /**
      * Executes mail merge without regions.
-     * @param string $fileName 
-     * @param string $strXML
+     *
+     * @param string $fileName       The source file name.
+     * @param string $strXML         Data in xml format.
+     * @param string $documentFolder Result name of the document after the operation
+     * @param array  $cleanUpParams  If cleanup parameter is omitted, cleanup options will be None (None,
+     *                               EmptyParagraphs, UnusedRegions, UnusedFields, ContainingFields, RemoveTitleRow,
+     *                               RemoveTitleRowInInnerTables)
+     *
+     * @return string Returns the file path.
+     * @throws Exception
      */
-    public function executeMailMerge($fileName, $strXML) {
-        try {
-            //check whether files are set or not
-            if ($fileName == '')
-                throw new Exception('File not specified');
+    public function executeMailMerge($fileName, $strXML, $documentFolder = '', $cleanUpParams = ['None'])
+    {
+        //check whether files are set or not
+        if ($fileName == '') {
+            throw new Exception('File not specified');
+        }
 
-            //build URI to execute mail merge without regions
-            $strURI = Product::$baseProductUri . '/words/' . $fileName . '/executeMailMerge';
+        //flatten cleanup params to string ready to append to uri
+        $cleanUpString = '';
+        foreach ($cleanUpParams AS $cleanUpParam) {
+            $cleanUpString .= strlen($cleanUpString) ? ',' . $cleanUpParam : $cleanUpParam;
+        }
 
-            //sign URI
-            $signedURI = Utils::sign($strURI);
+        //build URI to execute mail merge without regions
+        $strURI = Product::$baseProductUri . '/words/' . $fileName . '/executeMailMerge?' . 'folder=' . $documentFolder . '&cleanup=' . $cleanUpString;
 
-            $responseStream = Utils::processCommand($signedURI, 'POST', '', $strXML);
-            $json = json_decode($responseStream);
+        //sign URI
+        $signedURI = Utils::sign($strURI);
 
-            $v_output = Utils::validateOutput($responseStream);
+        $responseStream = Utils::processCommand($signedURI, 'POST', '', $strXML);
+        $json = json_decode($responseStream);
 
-            if ($v_output === '') {
-                //Save docs on server
-                $folder = new Folder();
-                $outputStream = $folder->GetFile($json->Document->FileName);
-                $outputPath = AsposeApp::$outPutLocation . $fileName;
-                Utils::saveFile($outputStream, $outputPath);
-                return $outputPath;
+        $v_output = Utils::validateOutput($responseStream);
+
+        if ($v_output === '') {
+            //Save docs on server
+            $folder = new Folder();
+
+            if ($documentFolder) {
+                $outputStream = $folder->getFile($documentFolder . '/' . $json->Document->FileName);
+            } else {
+                $outputStream = $folder->getFile($json->Document->FileName);
             }
-            else
-                return $v_output;
-        } catch (Exception $e) {
-            throw new Exception($e->getMessage());
+
+            $outputPath = AsposeApp::$outPutLocation . $fileName;
+            Utils::saveFile($outputStream, $outputPath);
+            return $outputPath;
+        } else {
+            return $v_output;
         }
     }
 
-    /*
+    /**
      * Executes mail merge with regions.
-     * @param string $fileName 
-     * @param string $strXML
+     *
+     * @param string $fileName       The name of source file.
+     * @param string $strXML         Data in xml format.
+     * @param string $documentFolder Result name of the document after the operation
+     * @param array  $cleanUpParams  If cleanup parameter is omitted, cleanup options will be None (None,
+     *                               EmptyParagraphs, UnusedRegions, UnusedFields, ContainingFields, RemoveTitleRow,
+     *                               RemoveTitleRowInInnerTables)
+     *
+     * @return string Returns the file path.
+     * @throws Exception
      */
-    public function executeMailMergewithRegions($fileName, $strXML) {
-        try {
-            //check whether files are set or not
-            if ($fileName == '')
-                throw new Exception('File not specified');
+    public function executeMailMergewithRegions($fileName, $strXML, $documentFolder = '', $cleanUpParams = ['None'])
+    {
+        //check whether files are set or not
+        if ($fileName == '') {
+            throw new Exception('File not specified');
+        }
 
-            //build URI to execute mail merge with regions
-            $strURI = Product::$baseProductUri . '/words/' . $fileName . '/executeMailMerge?withRegions=true';
+        //flatten cleanup params to string ready to append to uri
+        $cleanUpString = '';
+        foreach ($cleanUpParams AS $cleanUpParam) {
+            $cleanUpString .= strlen($cleanUpString) ? ',' . $cleanUpParam : $cleanUpParam;
+        }
 
-            //sign URI
-            $signedURI = Utils::sign($strURI);
+        //build URI to execute mail merge with regions
+        $strURI = Product::$baseProductUri . '/words/' . $fileName . '/executeMailMerge?withRegions=true' . '&folder=' . $documentFolder . '&cleanup=' . $cleanUpString;
 
-            $responseStream = Utils::processCommand($signedURI, 'POST', '', $strXML);
-            $json = json_decode($responseStream);
+        //sign URI
+        $signedURI = Utils::sign($strURI);
 
-            $v_output = Utils::validateOutput($responseStream);
+        $responseStream = Utils::processCommand($signedURI, 'POST', '', $strXML);
+        $json = json_decode($responseStream);
 
-            if ($v_output === '') {
-                //Save docs on server
-                $folder = new Folder();
-                $outputStream = $folder->GetFile($json->Document->FileName);
-                $outputPath = AsposeApp::$outPutLocation . $fileName;
-                Utils::saveFile($outputStream, $outputPath);
-                return $outputPath;
+        $v_output = Utils::validateOutput($responseStream);
+
+        if ($v_output === '') {
+            //Save docs on server
+            $folder = new Folder();
+
+            if ($documentFolder) {
+                $outputStream = $folder->getFile($documentFolder . '/' . $json->Document->FileName);
+            } else {
+                $outputStream = $folder->getFile($json->Document->FileName);
             }
-            else
-                return $v_output;
-        } catch (Exception $e) {
-            throw new Exception($e->getMessage());
+
+            $outputPath = AsposeApp::$outPutLocation . $fileName;
+            Utils::saveFile($outputStream, $outputPath);
+            return $outputPath;
+        } else {
+            return $v_output;
         }
     }
 
-    /*
+    /**
      * Executes mail merge template.
-     * @param string $fileName 
-     * @param string $strXML
-     * @param string $documentFolder
+     *
+     * @param string $fileName       The name of source file.
+     * @param string $strXML         Data in xml format.
+     * @param string $documentFolder The document folder.
+     *
+     * @return string Returns the file path.
+     * @throws Exception
      */
-    public function executeTemplate($fileName, $strXML, $documentFolder = '') {
-        try {
-            //check whether files are set or not
-            if ($fileName == '')
-                throw new Exception('File not specified');
+    public function executeTemplate($fileName, $strXML, $documentFolder = '')
+    {
+        //check whether files are set or not
+        if ($fileName == '') {
+            throw new Exception('File not specified');
+        }
 
-            //build URI to execute mail merge template
-            $strURI = Product::$baseProductUri . '/words/' . $fileName . '/executeTemplate' . ($documentFolder == '' ? '' : '?folder=' . $documentFolder);
+        //build URI to execute mail merge template
+        $strURI = Product::$baseProductUri . '/words/' . $fileName . '/executeTemplate' . ($documentFolder == '' ? '' : '?folder=' . $documentFolder);
 
-            //sign URI
-            $signedURI = Utils::sign($strURI);
+        //sign URI
+        $signedURI = Utils::sign($strURI);
 
-            $responseStream = Utils::processCommand($signedURI, 'POST', '', $strXML);
+        $responseStream = Utils::processCommand($signedURI, 'POST', '', $strXML);
 
-            $v_output = Utils::validateOutput($responseStream);
+        $v_output = Utils::validateOutput($responseStream);
 
-            if ($v_output === '') {
-                $json = json_decode($responseStream);
-                //Save docs on server
-                $folder = new Folder();
-                $outputStream = $folder->GetFile(($documentFolder == '' ? $json->Document->FileName : $documentFolder . '/' . $json->Document->FileName));
-                $outputPath = AsposeApp::$outPutLocation . $fileName;
-                Utils::saveFile($outputStream, $outputPath);
-                return $outputPath;
-            }
-            else
-                return $v_output;
-        } catch (Exception $e) {
-            throw new Exception($e->getMessage());
+        if ($v_output === '') {
+            $json = json_decode($responseStream);
+            //Save docs on server
+            $folder = new Folder();
+            $outputStream = $folder->GetFile(($documentFolder == '' ? $json->Document->FileName : $documentFolder . '/' . $json->Document->FileName));
+            $outputPath = AsposeApp::$outPutLocation . $fileName;
+            Utils::saveFile($outputStream, $outputPath);
+            return $outputPath;
+        } else {
+            return $v_output;
         }
     }
 
